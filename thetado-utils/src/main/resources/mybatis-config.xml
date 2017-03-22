@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>   
+<!DOCTYPE configuration   
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">   
+    
+<configuration>   
+    <settings>   
+        <!-- changes from the defaults for testing -->   
+        <setting name="cacheEnabled" value="false" />   
+        <setting name="useGeneratedKeys" value="true" />   
+        <setting name="defaultExecutorType" value="REUSE" />   
+    </settings>   
+    <typeAliases>   
+       <typeAlias alias="DBRet" type="com.thetado.utils.db.DBRet"/>   
+    </typeAliases>  
+    <environments default="development">   
+       <environment id="development">   
+           <transactionManager type="jdbc"/>   
+           <dataSource type="POOLED">   
+              <property name="driver" value="com.mysql.jdbc.Driver"/>   
+              <property name="url" value="jdbc:mysql://192.168.5.97:3306/SDS"/>   
+              <property name="username" value="sds"/>   
+              <property name="password" value="h16aug8v3w"/>   
+           </dataSource>   
+       </environment>   
+    </environments>   
+    <mappers>   
+        <mapper resource="dbfile/taskaccess.xml" />   
+    </mappers>   
+</configuration>  

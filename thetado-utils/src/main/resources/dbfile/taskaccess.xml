@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thetado.utils.db.mapper.MapperTest">
+    <!-- 这里namespace必须是UserMapper接口的路径” 
+    <insert id="insertUser" parameterType="User">
+        insert into user(name,age) values(#{name},#{age})
+        
+    </insert>-->
+
+    <!-- 这里的id必须和UserMapper接口中的接口方法名相同 -->
+    <select id="getData" resultType="com.thetado.utils.db.DBRet">
+        select POSITION_ID,POSITION_NAME from DIC_SYS_POSITION where PARENT_ID = 1000038 limit 100
+    </select>
+</mapper> 
