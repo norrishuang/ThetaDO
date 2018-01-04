@@ -1,13 +1,22 @@
 package com.thetado.core.taskmanage;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 
-
+import com.thetado.utils.Task;
+import com.thetado.core.access.AbstractAccessor;
 import com.thetado.core.datalog.DataLogInfo;
 import com.thetado.core.template.AbstractTempletBase;
+import com.thetado.core.template.TempletRecord;
+import com.thetado.utils.ConstDef;
+import com.thetado.utils.ThreadPool;
+
+
 
 
 /**
@@ -18,6 +27,21 @@ import com.thetado.core.template.AbstractTempletBase;
 public class TaskInfo implements Serializable{
 
 	private static final long serialVersionUID = 2652378647623428865L;
+	
+	private Logger log = Logger.getLogger(TaskInfo.class);
+	private Task threadHandle = null;
+	
+	private String sysName;
+	
+	public TaskInfo(int taskID)
+  	{
+  		this.taskId = taskID;
+  		this.keyID = taskID;
+  		this.sysName = String.valueOf(this.taskId);
+  	}
+	
+	private TempletRecord parseTmpRecord;
+	private TempletRecord distTmpRecord;
 	
 	private DataLogInfo logInfo = new DataLogInfo();
 	
@@ -483,6 +507,292 @@ public class TaskInfo implements Serializable{
   		return allRecordCount;
   	}
   	
+  	/**
+  	 * 构建采集任务
+  	 * @param rs
+  	 * @param scantime
+  	 * @throws Exception
+  	 */
+  	public void buildObj(ResultSet rs, Date scantime) throws Exception
+  	{
+  		if (TaskMgr.getInstance().isActive(rs.getInt("TASK_ID"), false))
+  		{
+  			Logger.getLogger(TaskInfo.class).debug(this.sysName + " is active");
+  			return;
+  		}
+
+  		buildObj(rs);
+
+  		if (checkDataTime())
+  		{
+  			addTaskItem(scantime);
+  		}
+  	}
+  	
+  	/**
+  	 * 检查采集任务的时间，是否可以进行采集
+  	 * @return
+  	 */
+  	private boolean checkDataTime()
+  	{
+  		if (this.endDataTime == null) return true;
+  		return this.lastCollectTime.getTime() <= this.endDataTime.getTime();
+  	}
+  	
+  	/**
+  	 * 添加采集任务
+  	 * @param scantime
+  	 */
+  	protected void addTaskItem(Date scantime)
+  	{
+  		Calendar cal = Calendar.getInstance();
+  		int minutes = cal.get(12);
+  		int hours = cal.get(11);
+
+  		boolean bAdd = false;
+  		int time = -1;
+
+  		switch (getCollectPeriod())
+  		{
+	  		case 1:
+	  			bAdd = true;
+	  			break;
+		  	case 3://小时
+		  	case 6:
+		  	case 9://一分钟
+		  	case 8:
+		  		time = minutes;
+		  		break;
+		  	case 2://天
+		  		time = hours;
+		  		break;
+		  	case 4://半小时
+		  		time = minutes % 30;
+		  		break;
+		  	case 5://15分钟
+		  		time = minutes % 15;
+		  		break;
+		  	case 7://5分钟
+		  		time = minutes % 5;
+		  		break;
+		  	case 10://10分钟
+		  		time = minutes % 10;
+		  		break;
+		  	default:
+		  		this.log.debug(this.sysName + " : without period type.");
+		  		return;
+  		}	
+
+  		if (time != -1) {
+  			bAdd = isReady(time, scantime.getTime());
+  		}
+  		if (bAdd)
+  		{
+  			startTask();
+	  	}
+  	}
+
+  	public void startTask()
+  	{
+  		if (TaskMgr.getInstance().addTask(this.getTaskID(),this.getLastCollectTime().getTime()))
+  		{
+  			AbstractAccessor accessor = Factory.createAccessor(this);
+  			setCollectThread(accessor);
+  			//accessor.s.setName("Thread:"+this.getDescribe() + "[" + this.getLastCollectTime() + "]");
+  			//accessor.start();
+  			accessor.setBeginExceuteTime(new Date());
+  			this.startTime = new Timestamp(new Date().getTime());
+  			accessor.setSubmitTime(new Date());
+  			
+  			ThreadPool.getInstance().addTask(accessor);
+  			
+  			//更新下一个采集时间 2013-06-03 Turk
+  			long lastCollectTime = getLastCollectTime().getTime();
+  			Timestamp timeStamp = new Timestamp(lastCollectTime + getPeriodTime());
+  	  		saveLastCollectTime(timeStamp);
+  		}
+  	}
+  	
+  	public boolean saveLastCollectTime(Timestamp time)
+  	{
+//  		if(this.isPersistentTask)//如果是持续性采集任务，不需要更新采集日志
+//  			return true;
+  		
+  		
+  		//更新下一个任务表的时间，表示此任务已在任务队列中运行
+//  		if(SystemConfig.getInstance().IsTaskUserXML())
+//  		{
+////  			TaskMgr.getInstance().setLastImportTimePosForXML(getTaskID(), time, 0);
+//  		}
+//  		else
+  		{
+  			TaskMgr.getInstance().setLastImportTimePos(getTaskID(), time, 0);
+  		}
+  		
+  		String logStr = this.sysName + ": update stamptime :" + getDescribe() + "  " + time;
+  		this.log.debug(logStr);
+  		log("结束", logStr);
+  		return true;
+  	}
+  	
+	/**
+  	 * 该任务的采集线程对象
+  	 * @return
+  	 */
+  	public Task getCollectThread()
+  	{
+  		return this.threadHandle;
+  	}
+//
+  	public void setCollectThread(Task hThreadHandle)
+  	{
+  		this.threadHandle = hThreadHandle;
+  	}
+  	
+ 	/**
+  	 * 判断是否可运行采集，此处控制采集延时和采集具体时间点
+  	 * @param unit
+  	 * @param scanTime
+  	 * @return
+  	 */
+  	protected boolean isReady(int unit, long scanTime)
+  	{
+  		boolean bReturn = false;
+
+  		//采集具体启动时间，天采集为小时，小时采集为分钟
+  		int collectTime = getCollectTime();
+  		collectTime = collectTime > 59 ? 0 : collectTime;
+  		
+  		//采集启动偏移多少分钟开始采集
+  		long startTime = getLastCollectTime().getTime() + 
+  			getCollectTimePos() * 60 * 1000;
+
+  		if (scanTime - startTime >= this.getPeriodTime())
+  		{
+//  			DelayProbeMgr.getTaskEntrys().remove(Integer.valueOf(getTaskID()));
+  			bReturn = true;
+  		}
+  		else if ((unit >= collectTime) && (startTime < scanTime))
+  		{
+//  			DelayProbeMgr.getTaskEntrys().remove(Integer.valueOf(getTaskID()));
+  			bReturn = true;
+  		}
+
+  		//if (!bReturn)
+  		//{
+  		//	TaskMgr.getInstance().tempTasks.add(this);
+  		//}
+  		return bReturn;
+  	}
+  	
+  	/**
+  	 * 构建采集任务
+  	 * @param rs
+  	 * @throws Exception
+  	 */
+  	protected void buildObj(ResultSet rs)
+  		throws Exception
+  	{
+  		setGroupID(rs.getInt("GROUP_ID"));
+	    setDescribe(rs.getString("Task_Describe"));
+	    setTaskID(rs.getInt("TASK_ID"));
+	    DevInfo devInfo = new DevInfo();
+	    devInfo.setDevID(rs.getInt("DEVICEID"));
+	    devInfo.setName(rs.getString("DEV_NAME"));
+	    devInfo.setIP(rs.getString("HOST_IP"));
+	    devInfo.setHostUser(rs.getString("HOST_USER"));
+	    devInfo.setHostPwd(rs.getString("HOST_PWD"));
+	    devInfo.setHostSign(rs.getString("HOST_SIGN"));
+	    devInfo.setEncode(rs.getString("ENCODE"));
+	    devInfo.setDeviceName(rs.getString("DEVICENAME"));
+	    devInfo.setCityID(rs.getInt("CITY_ID"));
+	    devInfo.setVendor(rs.getString("vendor"));
+	    setDBDriver(rs.getString("DBDRIVER"));
+	    setDBUrl(rs.getString("DBURL"));
+	    setDevInfo(devInfo);
+	    setDevPort(rs.getInt("DEV_PORT"));
+	    DevInfo proxdevInfo = new DevInfo();
+	    proxdevInfo.setDevID(rs.getInt("PROXY_DEV_ID"));
+	    proxdevInfo.setName(rs.getString("PROXY_DEV_NAME"));
+	    proxdevInfo.setIP(rs.getString("PROXY_HOST_IP"));
+	    proxdevInfo.setHostUser(rs.getString("PROXY_HOST_USER"));
+	    proxdevInfo.setHostPwd(rs.getString("PROXY_HOST_PWD"));
+	    proxdevInfo.setHostSign(rs.getString("PROXY_HOST_SIGN"));
+//	    setProxyDevInfo(proxdevInfo);
+	    
+//	    InDBServer indbserver = new InDBServer();
+//	    indbserver.setInDBServer(rs.getString("INDBSERVER"));
+//	    indbserver.setInDBUser(rs.getString("INDBUSER"));
+//	    indbserver.setInDBPassword(rs.getString("INDBPASSWORD"));
+//	    setInDBServerConfig(indbserver);
+
+//	    setProxyDevPort(rs.getInt("PROXY_DEV_PORT"));
+	    setCollectType(rs.getInt("COLLECT_TYPE"));
+	    setCollectTimeOUT(rs.getInt("CollectTimeOut"));
+	    setCollectPeriod(rs.getInt("COLLECT_PERIOD"));
+	    setCollectTime(rs.getInt("COLLECT_TIME"));
+	    setCollectTimePos(rs.getInt("COLLECT_TIMEPOS"));
+	    setShellCMDPrepare(rs.getString("SHELL_CMD_PREPARE"));
+	    setShellCMDFinish(rs.getString("SHELL_CMD_FINISH"));
+
+	    setParserID(rs.getInt("PARSERID")); //解析类型，反射调用的解析类
+	    setDistributorID(rs.getInt("DISTRIBUTORID"));
+	
+	    setRedoTimeOffset(rs.getInt("REDO_TIME_OFFSET"));
+//	    setProbeTime(rs.getInt("prob_starttime"));
+	
+	    this.endDataTime = rs.getTimestamp("end_data_time");
+
+//	    if (Util.isOracle())
+	    {
+	    	String strPath = ConstDef.ClobParse(rs.getClob("COLLECT_PATH"));
+	    	setCollectPath(strPath);
+	    }
+//	    else if (Util.isSybase())
+//	    {
+//	    	setCollectPath(rs.getString("COLLECT_PATH"));
+//	    }
+//	    else if (Util.isMySQL())
+//	    {
+//	    	setCollectPath(rs.getString("COLLECT_PATH"));
+//	    }
+
+	    this.setShellTimeOut(rs.getInt("SHELL_TIMEOUT"));
+	    this.setParesTmpID(rs.getInt("PARSE_TMPID")); //解析类型
+	    
+	    this.setParesTmpType(rs.getInt("TMPTYPE_P")); //解析模版类型
+
+	    this.parseTmpRecord = new TempletRecord();
+	    this.parseTmpRecord.setId(rs.getInt("PARSE_TMPID")); //解析模版编号
+	    this.parseTmpRecord.setType(rs.getInt("TMPTYPE_P")); //解析模版类型
+	    this.parseTmpRecord.setName(rs.getString("TMPNAME_P")); 
+	    this.parseTmpRecord.setEdition(rs.getString("EDITION_P"));
+	    this.parseTmpRecord.setFileName(rs.getString("TEMPFILENAME_P"));
+
+	    //解析模版
+	    this.parseTemplet = Factory.createTemplet(this.parseTmpRecord);
+	
+	    this.setDistributeTmpID(rs.getInt("DISTRBUTE_TMPID"));
+	
+	    this.distTmpRecord = new TempletRecord();
+	    this.distTmpRecord.setId(rs.getInt("DISTRBUTE_TMPID"));
+	    this.distTmpRecord.setType(rs.getInt("TMPTYPE_D"));
+	    this.distTmpRecord.setName(rs.getString("TMPNAME_D"));
+	    this.distTmpRecord.setEdition(rs.getString("EDITION_D"));
+	    this.distTmpRecord.setFileName(rs.getString("TEMPFILENAME_D"));
+
+	    this.distributeTemplet = Factory.createTemplet(this.distTmpRecord);
+	
+	    setLastCollectTime(rs.getTimestamp("SUC_DATA_TIME"));
+	
+	    setLastCollectPos(rs.getInt("SUC_DATA_POS"));
+	
+	    setMaxReCollectTime(rs.getInt("MAXCLTTIME"));
+	
+	    setThreadSleepTime(rs.getInt("THREADSLEEPTIME"));
+	
+	    setBlockedTime(rs.getInt("BLOCKEDTIME"));
+  	}
   	
 
   	
@@ -509,6 +819,49 @@ public class TaskInfo implements Serializable{
   	public void log(String taskStatus, String taskDetail, Throwable taskException)
   	{
   		log(taskStatus, taskDetail, taskException, null);
+  	}
+  	
+	/**
+  	 * 根据采集周期控制采集时间点
+  	 * @return
+  	 */
+  	public long getPeriodTime()
+  	{
+  		long time = 0L;
+  		switch (getCollectPeriod())
+  		{
+  			case 1://
+  				time = 60000L;
+  				break;
+  			case 3:
+  				time = 3600000L;
+  				break;
+  			case 6:
+  				time = 14400000L;
+  				break;
+  			case 2:
+  				time = 86400000L;
+  				break;
+  			case 4:
+  				time = 1800000L;
+  				break;
+  			case 5://15 min
+  				time = 900000L;
+  				break;
+  			case 7://5 min
+  				time = 300000L;
+  				break;
+  			case 8:
+  				time = 43200000L;
+  				break;
+  			case 9:
+  				time = 60000L;
+  				break;
+  			case 10://十分钟粒度
+  				time = 10*60*1000L;
+  		}
+
+  		return time;
   	}
 
 }

@@ -34,6 +34,12 @@
 		  <artifactId>thetado-rpc</artifactId>
 		  <version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+		  <groupId>ThetaDO</groupId>
+		  <artifactId>thetado-core</artifactId>
+		  <version>${project.version}</version>
+		</dependency>
   </dependencies>
   
   

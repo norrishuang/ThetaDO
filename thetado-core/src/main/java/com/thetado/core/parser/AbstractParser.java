@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
+import com.thetado.core.distribute.AbstractDistribute;
 import com.thetado.core.distribute.Distribute;
 import com.thetado.core.taskmanage.TaskInfo;
 
@@ -18,7 +19,7 @@ import com.thetado.core.taskmanage.TaskInfo;
 public abstract class AbstractParser
 {
 	protected TaskInfo collectObjInfo;
-	public Distribute distribute;
+	public AbstractDistribute distribute;
 	protected String fileName = "";
 	protected String dsConfigName = null;
 
@@ -78,12 +79,12 @@ public abstract class AbstractParser
 		this.collectObjInfo = collectObjInfo;
 	}
 
-	public Distribute getDistribute()
+	public AbstractDistribute getDistribute()
 	{
 		return this.distribute;
 	}
 
-	public void setDistribute(Distribute distribute)
+	public void setDistribute(AbstractDistribute distribute)
 	{
 		this.distribute = distribute;
 	}
