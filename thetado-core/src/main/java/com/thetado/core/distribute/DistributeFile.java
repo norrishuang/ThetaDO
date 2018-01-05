@@ -298,6 +298,13 @@ public class DistributeFile extends AbstractDistribute {
 	}
 
 
+	@Override
+	public boolean DistributeData(byte[] bData, int tableIndex) {
+		return false;
+		    
+	}
+
+
 	
 }
 

@@ -1269,6 +1269,12 @@ public class DistributeSqlLdr extends AbstractDistribute{
 			this.log.error("BCP Error!", e);
 		}
 	}
+
+	@Override
+	public boolean DistributeData(byte[] bData, int tableIndex) {
+		return false;
+		    
+	}
 	
 	
 	/**
