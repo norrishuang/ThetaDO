@@ -16,6 +16,11 @@ public abstract class AbstractTransform {
 
 	public abstract void ParserData(String row);
 	
+	/**
+	 * 替换解析字段中包含的特殊字符为空字符串，[;|,]
+	 * @param content
+	 * @return
+	 */
 	protected String removeNoiseSemicolon(String content)
 	{
 	    String strValue = content.replaceAll(";", " ");

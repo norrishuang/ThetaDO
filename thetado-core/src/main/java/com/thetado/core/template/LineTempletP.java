@@ -335,6 +335,16 @@ public class LineTempletP extends AbstractTempletBase{
   		 * 字段格式
   		 */
   		public String m_dateFormat;
+  		
+  		/**
+  		 * 解析类型 0:默认不做处理 1:自定义解析
+  		 */
+  		public int m_parserType = 0;
+  		
+  		/**
+  		 * 自定义解析类，需要实现接口IParserColumn
+  		 */
+  		public String m_customParserClass = "";
 
   		public FieldTemplet()
   		{
@@ -412,7 +422,8 @@ public class LineTempletP extends AbstractTempletBase{
   		 * 解析类型  对应解析配置文件中  RESERVED.RITEM.PARSETYPE 节
   		 * 1：按行间隔符解析
   		 * 2: 按位解析，字符串起始位置+字段长度解析
-  		 * 3：整行解析，只做间隔符替换         
+  		 * 3：整行解析，只做间隔符替换
+  		 * 5：自定义解析，自己编写解析方法，通过反射方式，调用ParserColumn方法解析   
   		 */
   		public int m_nParseType;
   		

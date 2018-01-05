@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.thetado.core.taskmanage.TaskInfo;
 import com.thetado.core.template.LineTempletP;
+import com.thetado.core.template.LineTempletP.FieldTemplet;
 import com.thetado.utils.ConstDef;
 
 public class LineTransform extends AbstractTransform{
@@ -31,86 +32,90 @@ public class LineTransform extends AbstractTransform{
 		LineTempletP templet = (LineTempletP)this.collectObjInfo.getParseTemplet();
 
 		/***
+		 * old:
 		 * 一个行解析模板配置中，包含了多个需要解析的文件配置
 		 * 这里选择通过什么方式去匹配当前解析的这个文件应该对应哪一个解析的subtemplate
-		 * 
+		 * new:
+		 * 不允许一个解析模板配置多个类型的文件，一个解析模板XML只对应当前这个解析文件
 		 ***/
-		switch (templet.nScanType)
-		{
-			case 0:
-				for (int j = 0; j < templet.unReserved.size(); j++)
-				{
-					if (row.indexOf((String)templet.unReserved.get(j)) == 0)
-						return;
-				}
-				break;
-			case 1:
-				for (int i = 0; i < templet.m_nTemplet.size(); i++)
-				{
-					LineTempletP.SubTemplet subTemp = (LineTempletP.SubTemplet)templet.m_nTemplet.get(i);
-
-					if (row.indexOf(subTemp.m_strLineHeadSign) != 0)
-						continue;
-					isExistReservedKeyWord = true;
-					nSubTmpIndex = i;
-					nColumnIndex = 1;
-					break;
-				}
-
-				if (isExistReservedKeyWord) break;
-					return;
-			case 2:
-				String strShortFileName = this.fileName.substring(this.fileName.lastIndexOf(File.separatorChar) + 1);
-				for (int i = 0; i < templet.m_nTemplet.size(); i++)
-				{
-					LineTempletP.SubTemplet subTemp = (LineTempletP.SubTemplet)templet.m_nTemplet.get(i);
-
-					String strFileName = ConstDef.ParseFilePath(subTemp.m_strFileName, this.collectObjInfo.getLastCollectTime());
-					if (subTemp.m_nFileNameCompare == 0)
-					{
-						if(strFileName.isEmpty())
-							continue;
-						
-						if (!logicEquals(strShortFileName, strFileName))
-						{
-							if(!strFileName.isEmpty() && !strShortFileName.contains(strFileName))
-							{
-								continue;
-							}
-						}
-						nSubTmpIndex = i;
-
-//						if (!TaskMgr.getInstance().isReAdoptObj(this.collectObjInfo))
-//							break;
-//						RegatherObjInfo rTask = (RegatherObjInfo)this.collectObjInfo;
-//						rTask.addTableIndex(i);
-
-						break;
-					}
-
-					if (subTemp.m_nFileNameCompare != 1)
-						continue;
-					if (strShortFileName.indexOf(strFileName) != 0)
-						continue;
-					nSubTmpIndex = i;
-					this.collectObjInfo.setActiveTableIndex(i);
-					break;
-				}
-
-				for (int j = 0; j < templet.unReserved.size(); j++)
-				{
-					if (row.indexOf((String)templet.unReserved.get(j)) == 0) {
-						return;
-					}
-				}
-
-		}
 		
-		if(nSubTmpIndex == -1)
-			return;
+	
+//		switch (templet.nScanType)
+//		{
+//			case 0:
+//				for (int j = 0; j < templet.unReserved.size(); j++)
+//				{
+//					if (row.indexOf((String)templet.unReserved.get(j)) == 0)
+//						return;
+//				}
+//				break;
+//			case 1:
+//				for (int i = 0; i < templet.m_nTemplet.size(); i++)
+//				{
+//					LineTempletP.SubTemplet subTemp = (LineTempletP.SubTemplet)templet.m_nTemplet.get(i);
+//
+//					if (row.indexOf(subTemp.m_strLineHeadSign) != 0)
+//						continue;
+//					isExistReservedKeyWord = true;
+//					nSubTmpIndex = i;
+//					nColumnIndex = 1;
+//					break;
+//				}
+//
+//				if (isExistReservedKeyWord) break;
+//					return;
+//			case 2:
+//				String strShortFileName = this.fileName.substring(this.fileName.lastIndexOf(File.separatorChar) + 1);
+//				for (int i = 0; i < templet.m_nTemplet.size(); i++)
+//				{
+//					LineTempletP.SubTemplet subTemp = (LineTempletP.SubTemplet)templet.m_nTemplet.get(i);
+//
+//					String strFileName = ConstDef.ParseFilePath(subTemp.m_strFileName, this.collectObjInfo.getLastCollectTime());
+//					if (subTemp.m_nFileNameCompare == 0)
+//					{
+//						if(strFileName.isEmpty())
+//							continue;
+//						
+//						if (!logicEquals(strShortFileName, strFileName))
+//						{
+//							if(!strFileName.isEmpty() && !strShortFileName.contains(strFileName))
+//							{
+//								continue;
+//							}
+//						}
+//						nSubTmpIndex = i;
+//
+////						if (!TaskMgr.getInstance().isReAdoptObj(this.collectObjInfo))
+////							break;
+////						RegatherObjInfo rTask = (RegatherObjInfo)this.collectObjInfo;
+////						rTask.addTableIndex(i);
+//
+//						break;
+//					}
+//
+//					if (subTemp.m_nFileNameCompare != 1)
+//						continue;
+//					if (strShortFileName.indexOf(strFileName) != 0)
+//						continue;
+//					nSubTmpIndex = i;
+//					this.collectObjInfo.setActiveTableIndex(i);
+//					break;
+//				}
+//
+//				for (int j = 0; j < templet.unReserved.size(); j++)
+//				{
+//					if (row.indexOf((String)templet.unReserved.get(j)) == 0) {
+//						return;
+//					}
+//				}
+//
+//		}
+//		
+//		if(nSubTmpIndex == -1)
+//			return;
 
 		LineTempletP.SubTemplet subTemp = (LineTempletP.SubTemplet)templet.m_nTemplet
-			.get(nSubTmpIndex);
+			.get(0);
 
 		StringBuffer strNewRow = new StringBuffer();
 		String strValue = "";
@@ -223,6 +228,7 @@ public class LineTransform extends AbstractTransform{
 
 		try
 		{
+			//正对全文件的解析类型
 			switch (subTemp.m_nParseType)
 			{
 				case 1:
@@ -302,68 +308,91 @@ public class LineTransform extends AbstractTransform{
 
 		int nCount = 0;
 		String nvl = subTemp.nvl;
+		
+		
 		for (int k = nColumnIndex; k < m_strTemp.length; k++)
 		{
-			if ((templet.columnMapping.size() > 0) && 
-					(!templet.columnMapping.containsKey(Integer.valueOf(k))))
-			{
-				continue;
-			}
-			if (nCount >= subTemp.m_nColumnCount)
-			{
-				break;
-			}
-			if ((m_strTemp[k] == null) || (m_strTemp[k].trim().equals("")))
-			{
-				m_TempString.append(nvl);
-			}
-			else
-			{
-				try
-				{
-					String type = ((LineTempletP.FieldTemplet)subTemp.m_Filed.get(Integer.valueOf(k+3))).m_type;
-					if ((type != null) && (type.equals("DATE")))
+			FieldTemplet field = subTemp.m_Filed.get(k);
+			switch(field.m_parserType) {
+				case 0://默认解析方式
+					if ((templet.columnMapping.size() > 0) && 
+							(!templet.columnMapping.containsKey(Integer.valueOf(k))))
 					{
-						String dateFormat = ((LineTempletP.FieldTemplet)subTemp.m_Filed.get(Integer.valueOf(k+3))).m_dateFormat;
-						SimpleDateFormat format1 = new SimpleDateFormat(dateFormat);
-						SimpleDateFormat format2 = new SimpleDateFormat(dateFormat);
-
-						Date date = format1.parse(m_strTemp[k].trim());
-						String resultDate = format2.format(date);
-						m_TempString.append(resultDate);
+						continue;
+					}
+					if (nCount >= subTemp.m_nColumnCount)
+					{
+						break;
+					}
+					if ((m_strTemp[k] == null) || (m_strTemp[k].trim().equals("")))
+					{
+						m_TempString.append(nvl);
 					}
 					else
 					{
-						m_TempString.append(removeNoiseSemicolon(m_strTemp[k].trim()));
+						try
+						{
+							String type = ((LineTempletP.FieldTemplet)subTemp.m_Filed.get(Integer.valueOf(k+3))).m_type;
+							if ((type != null) && (type.equals("DATE")))
+							{
+								String dateFormat = ((LineTempletP.FieldTemplet)subTemp.m_Filed.get(Integer.valueOf(k+3))).m_dateFormat;
+								SimpleDateFormat format1 = new SimpleDateFormat(dateFormat);
+								SimpleDateFormat format2 = new SimpleDateFormat(dateFormat);
+	
+								Date date = format1.parse(m_strTemp[k].trim());
+								String resultDate = format2.format(date);
+								m_TempString.append(resultDate);
+							}
+							else
+							{
+								m_TempString.append(removeNoiseSemicolon(m_strTemp[k].trim()));
+							}
+						}
+						catch (ParseException e)
+						{
+							m_TempString.append("1970-1-1 08:00:00");
+						}
+						catch (Exception localException)
+						{
+							m_TempString.append(removeNoiseSemicolon(m_strTemp[k].trim()));
+						}
 					}
-				}
-				catch (ParseException e)
-				{
-					m_TempString.append("1970-1-1 08:00:00");
-				}
-				catch (Exception localException)
-				{
-					m_TempString.append(removeNoiseSemicolon(m_strTemp[k].trim()));
-				}
+	
+					//if ((k < m_strTemp.length - 1) && (nCount < subTemp.m_nColumnCount - 1))
+					m_TempString.append(subTemp.m_strNewFieldSplitSign);
+					nCount++;
+					break;
+				case 1://自定义类
+					String data = m_strTemp[k].trim();
+					try {
+						String className = field.m_customParserClass;
+						Class<IParserColumn> class1 = (Class<IParserColumn>) Class.forName(className);
+						String retValue = class1.newInstance().ParserColumn(data);
+						m_TempString.append(retValue);
+						m_TempString.append(subTemp.m_strNewFieldSplitSign);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+					
+					break;
+				default:
+					break;
 			}
-
-			//if ((k < m_strTemp.length - 1) && (nCount < subTemp.m_nColumnCount - 1))
-			m_TempString.append(subTemp.m_strNewFieldSplitSign);
-			nCount++;
+			
 		}
 		
-		if(subTemp.m_nDefaultColumnType == 1)
-		{
-			if (nCount < subTemp.m_nColumnCount - 3)  //排除默认加入的DEVICEID,COLLECTTIME,STAMPTIME字段
-			{
-				for (int k = nCount; k < subTemp.m_nColumnCount; k++)
-				{
-					m_TempString.append(subTemp.m_strNewFieldSplitSign + nvl);
-	
-					nCount++;
-				}
-			}
-		}
+//		if(subTemp.m_nDefaultColumnType == 1)
+//		{
+//			if (nCount < subTemp.m_nColumnCount - 3)  //排除默认加入的DEVICEID,COLLECTTIME,STAMPTIME字段
+//			{
+//				for (int k = nCount; k < subTemp.m_nColumnCount; k++)
+//				{
+//					m_TempString.append(subTemp.m_strNewFieldSplitSign + nvl);
+//	
+//					nCount++;
+//				}
+//			}
+//		}
 		return m_TempString.toString();
 	}
 
