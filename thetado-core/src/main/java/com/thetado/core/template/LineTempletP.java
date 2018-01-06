@@ -16,7 +16,14 @@ import com.thetado.core.config.SystemConfig;
 
 
 
-
+/**
+ * 行解析模板
+     *@Title 
+     *@Description 
+     *@Author Turk
+     *@Since 2018年1月6日
+     *@Version 1.1.0
+ */
 public class LineTempletP extends AbstractTempletBase{
 	/**
 	 * 
@@ -282,6 +289,17 @@ public class LineTempletP extends AbstractTempletBase{
   				else if (NodeName.equals("FIELDTYPE"))
   				{
   					field.m_type = strValue;
+  				}
+  				else if (NodeName.equals("PARSETYPE"))
+  				{
+  					if(strValue == null || strValue.equals(""))
+  						field.m_parserType = 0;
+  					else
+  						field.m_parserType = Integer.parseInt(strValue);
+  				} 
+  				else if (NodeName.equals("CUSTOMPARSECLASS"))
+  				{
+  					field.m_customParserClass = strValue;
   				} else {
   					if (!NodeName.equals("DATEFORMAT"))
   						continue;
