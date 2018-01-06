@@ -15,7 +15,7 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 
 import com.thetado.core.config.SystemConfig;
-import com.thetado.core.template.TempletBase;
+import com.thetado.core.template.ITempletBase;
 import com.thetado.utils.Util;
 
 
@@ -28,7 +28,7 @@ public class DeCompression
 {
 	private static Logger log = Logger.getLogger(DeCompression.class);
 
-	public static ArrayList<String> decompress(int nTaskID, TempletBase base, String strFile, Timestamp timestamp, int nPeriod) throws Exception
+	public static ArrayList<String> decompress(int nTaskID, ITempletBase base, String strFile, Timestamp timestamp, int nPeriod) throws Exception
 	{
 		if (Util.isWindows())
 		{
@@ -38,7 +38,7 @@ public class DeCompression
 		return decompressUnix(nTaskID, base, strFile, timestamp, nPeriod);
 	}
 
-	private static ArrayList<String> decompressWin(int nTaskID, TempletBase base, String strFile, Timestamp timestamp, int nPeriod)
+	private static ArrayList<String> decompressWin(int nTaskID, ITempletBase base, String strFile, Timestamp timestamp, int nPeriod)
     	throws Exception
     {
 		ArrayList filelist = new ArrayList();
@@ -140,7 +140,7 @@ public class DeCompression
 		return filelist;
     }
 
-	private static ArrayList<String> decompressUnix(int nTaskID, TempletBase base, String strFile, Timestamp timestamp, int nPeriod)
+	private static ArrayList<String> decompressUnix(int nTaskID, ITempletBase base, String strFile, Timestamp timestamp, int nPeriod)
     	throws Exception
     {
 		ArrayList fileList = null;

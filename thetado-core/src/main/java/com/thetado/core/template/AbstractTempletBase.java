@@ -22,7 +22,7 @@ import com.thetado.core.distribute.DistributeTemplet.TableTemplet;
  *
  */
 public abstract class AbstractTempletBase
-  implements TempletBase,Serializable
+  implements ITempletBase,Serializable
 {
 	/**
 	 * 

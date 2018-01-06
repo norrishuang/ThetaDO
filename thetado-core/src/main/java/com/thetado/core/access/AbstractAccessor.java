@@ -13,7 +13,7 @@ import com.thetado.core.distribute.DistributeTemplet;
 import com.thetado.core.distribute.TableItem;
 import com.thetado.core.parser.AbstractParser;
 import com.thetado.core.taskmanage.TaskInfo;
-import com.thetado.core.template.TempletBase;
+import com.thetado.core.template.ITempletBase;
 import com.thetado.utils.Task;
 import com.thetado.utils.Util;
 
@@ -239,7 +239,7 @@ public abstract class AbstractAccessor extends Task
   	 */
   	private void closeFiles()
   	{
-  		TempletBase distmp = this.taskInfo.getDistributeTemplet();
+  		ITempletBase distmp = this.taskInfo.getDistributeTemplet();
 //  		if (!(distmp instanceof GenericSectionHeadD))
   		{
   			for (int i = 0; i < ((DistributeTemplet)distmp).tableTemplets.size(); i++)

@@ -293,6 +293,13 @@ public class LineTransform extends AbstractTransform{
 		return strRow;
 	}
 
+	/**
+	 * 按分隔符解析
+	 * @param subTemp
+	 * @param nColumnIndex
+	 * @param strRow
+	 * @return
+	 */
 	private String ParseRowBySplit(LineTempletP.SubTemplet subTemp, int nColumnIndex, String strRow)
 	{
 		LineTempletP templet = (LineTempletP)this.collectObjInfo.getParseTemplet();
@@ -396,6 +403,12 @@ public class LineTransform extends AbstractTransform{
 		return m_TempString.toString();
 	}
 
+	/**
+	 * 按位解析
+	 * @param subTemp
+	 * @param strRow
+	 * @return
+	 */
 	private String ParseRowByPosition(LineTempletP.SubTemplet subTemp, String strRow)
 	{
 	    StringBuffer m_TempString = new StringBuffer();

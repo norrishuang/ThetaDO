@@ -7,7 +7,7 @@ import com.thetado.core.bean.PBeanMgr;
 import com.thetado.core.distribute.AbstractDistribute;
 import com.thetado.core.parser.AbstractParser;
 import com.thetado.core.template.AbstractTempletBase;
-import com.thetado.core.template.TempletBase;
+import com.thetado.core.template.ITempletBase;
 import com.thetado.core.template.TempletRecord;
 /**
  * 采集解析对象工厂
@@ -77,9 +77,9 @@ public class Factory
 		return d;
 	}
 
-	public static TempletBase createTemplet(int tmpType, int tmpID)
+	public static ITempletBase createTemplet(int tmpType, int tmpID)
 	{
-		TempletBase templet = PBeanMgr.getInstance().getTemplateBean(tmpType);
+		ITempletBase templet = PBeanMgr.getInstance().getTemplateBean(tmpType);
 		if (templet == null) {
 			return null;
 		}

@@ -5,7 +5,7 @@ package com.thetado.core.template;
  * @author Administrator
  *
  */
-public abstract interface TempletBase
+public abstract interface ITempletBase
 {
 	public abstract void buildTmp(int paramInt);
 
