@@ -258,25 +258,26 @@ public class LineTransform extends AbstractTransform{
 		}
 
 		strNewRow.append(strValue);
-//		if(this.distribute.getDisTemplet().stockStyle == 4)
-//		{
-//			//以文件方式入库  需要把最后一个逗号去掉
-//			strNewRow.deleteCharAt(strNewRow.length() -1);
-//		}
-//		strNewRow.append("\n");
-//		if(this.distribute.getDisTemplet().encode.isEmpty())
-//		{
-//			this.distribute.DistributeData(strNewRow.toString().getBytes(), nSubTmpIndex);
-//		}
-//		else
-//		{//需要对文件字符编码做转换
-//			try {
-//				this.distribute.DistributeData(strNewRow.toString().getBytes(this.distribute.getDisTemplet().encode), nSubTmpIndex);
-//			} catch (UnsupportedEncodingException e) {
-//				// TODO Auto-generated catch block
-//				errorlog.error("分发文件编码格式转换异常",e);
-//			}
-//		}
+		//完成一行的解析转换后，开始进入分发流程
+		if(this.distribute.getDisTemplet().stockStyle == 4)
+		{
+			//以文件方式入库  需要把最后一个逗号去掉
+			strNewRow.deleteCharAt(strNewRow.length() -1);
+		}
+		strNewRow.append("\n");
+		if(this.distribute.getDisTemplet().encode.isEmpty())
+		{
+			this.distribute.DistributeData(strNewRow.toString().getBytes(), nSubTmpIndex);
+		}
+		else
+		{//需要对文件字符编码做转换
+			try {
+				this.distribute.DistributeData(strNewRow.toString().getBytes(this.distribute.getDisTemplet().encode), nSubTmpIndex);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				log.error("分发文件编码格式转换异常",e);
+			}
+		}
 	}
 	
 	
@@ -371,7 +372,7 @@ public class LineTransform extends AbstractTransform{
 					break;
 				case 1://自定义类
 					String data = m_strTemp[k].trim();
-					try {
+					try {//反射配置中的class
 						String className = field.m_customParserClass;
 						Class<IParserColumn> class1 = (Class<IParserColumn>) Class.forName(className);
 						String retValue = class1.newInstance().ParserColumn(data);

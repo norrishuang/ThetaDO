@@ -4,14 +4,18 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
+import com.thetado.core.distribute.AbstractDistribute;
+import com.thetado.core.distribute.Distribute;
 import com.thetado.core.taskmanage.TaskInfo;
 
 public abstract class AbstractTransform {
 	
 	protected Logger log = Logger.getLogger(AbstractTransform.class);
 	protected TaskInfo collectObjInfo;
+	public AbstractDistribute distribute;
 	public AbstractTransform(TaskInfo info) {
 		collectObjInfo = info;
+		distribute = new Distribute(info);
 	}
 
 	public abstract void ParserData(String row);
