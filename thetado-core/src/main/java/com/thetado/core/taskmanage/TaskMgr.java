@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import oracle.sql.CLOB;
+//import oracle.sql.CLOB;
 
 import org.apache.log4j.Logger;
 
@@ -788,16 +788,16 @@ public class TaskMgr
 	    						seq + " for update";
 	    					res = st.executeQuery(selectsql);
 	    					res.next();
-	    					CLOB clob = (CLOB)res.getClob("FILEPATH");
-	    					Writer out = clob.getCharacterOutputStream();
-	    					out.write(filePath);
-	    					out.flush();
-	    					out.close();
-	    					clob = (CLOB)res.getClob("CAUSE");
-	    					out = clob.getCharacterOutputStream();
-	    					out.write(cause);
-	    					out.flush();
-	    					out.close();
+	    					String clob = res.getString("FILEPATH");
+//	    					Writer out = clob.getCharacterOutputStream();
+//	    					out.write(filePath);
+//	    					out.flush();
+//	    					out.close();
+//	    					clob = (CLOB)res.getClob("CAUSE");
+//	    					out = clob.getCharacterOutputStream();
+//	    					out.write(cause);
+//	    					out.flush();
+//	    					out.close();
 	    					if (con != null)
 	    					{
 	    						con.commit();
