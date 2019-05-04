@@ -52,7 +52,7 @@ public class ScanThread
 
 	public void startScan()
 	{
-	    this.logger.info("开始扫描");
+	    this.logger.info("Start Scan Task List...");
 //	    loadRegatherInfos();
 	    this.thread.start();
 	
@@ -68,7 +68,7 @@ public class ScanThread
 
 	    		if (now.getTime() - lastScanTime.getTime() > 10000L)
 	    		{
-//	    			DelayProbeMgr.time += 1;
+					/* DelayProbeMgr.time += 1; */
 	    			ScanInfo info = new ScanInfo();
 	    			info.now = new Date(now.getTime());
 	    			info.bReAdopt = false;
@@ -111,7 +111,7 @@ public class ScanThread
 
 	    }
 
-//	    CommonDB.closeDbConnection();
+		/* CommonDB.closeDbConnection(); */
 	}
 
 	public void setEndAction(ScanEndAction endAction)
