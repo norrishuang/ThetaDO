@@ -8,10 +8,10 @@ import com.thetado.rpc.NettyServer;
 
 /**
  * 
- * 控制主程序
+ * "[任务调度管理系统] 服务端  控制主程序 主进程
  * 负责监听消息，处理收到的消息（管理消息，数据消息）
  * 
- * @author  姓名 工号
+ * @author  Turk
  * @version  [版本号, 2017年3月22日]
  * @see  [相关类/方法]
  * @since  [产品/模块版本]
