@@ -22,7 +22,7 @@ public class ThetaDORUN {
 
 	public static void Start()
 	{
-		log.info("系统启动.");
+		log.info("System Start...");
 //		Version ver = Version.getInstance();
 //		String strVer = ver.getExpectedVersion();
 //		if (!ver.isRightVersion())
